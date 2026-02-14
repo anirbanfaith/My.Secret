@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Vault</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="heart-icon">🔒</div>
+            <div class="logo-text">Secret Vault</div>
+        </div>
+
+        <div id="alertBox"></div>
+
+        <!-- Step 1: Enter Name -->
+        <div id="nameStep">
+            <p class="subtitle">Someone left a secret message for you</p>
+            <form id="nameForm">
+                <div class="form-group">
+                    <label for="userName">Enter Your Name</label>
+                    <input type="text" id="userName" placeholder="Your name" required>
+                    <div class="help-text">This will be shown on the leaderboard</div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Continue
+                </button>
+            </form>
+        </div>
+
+        <!-- Step 2: Answer Questions -->
+        <div id="questionsStep" class="hidden">
+            <p class="subtitle">Answer these questions to unlock</p>
+            
+            <div class="vault-box">
+                <div class="locked-icon">🔐</div>
+                <h3><span id="displayName"></span>'s Attempt</h3>
+                <div class="vault-status">
+                    <div class="status-item">
+                        <div class="status-label">Tries Left</div>
+                        <div class="status-value" id="attemptsLeft">5</div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="unlockForm">
+                <div class="form-group">
+                    <label id="question1Label"></label>
+                    <input type="text" id="answer1" placeholder="Your answer" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label id="question2Label"></label>
+                    <input type="text" id="answer2" placeholder="Your answer" required autocomplete="off">
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%;">
+                    <span id="unlockText">Unlock Vault</span>
+                    <span id="unlockLoading" class="loading hidden"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Step 3: Success - Show Letter -->
+        <div id="successStep" class="hidden">
+            <div class="vault-box celebrate">
+                <div class="unlocked-icon">🎊 💕 🎉</div>
+                <h2 style="margin-bottom: 10px;">You Did It!</h2>
+            </div>
+
+            <div class="score-display">
+                <div class="score-circle" id="finalScore">100</div>
+                <p style="margin-top: 15px;">Your Score</p>
+            </div>
+
+            <div class="letter-content" id="letterContent"></div>
+
+            <button onclick="showLeaderboard()" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
+                View Leaderboard
+            </button>
+        </div>
+
+        <!-- Step 4: Failed - Broken Hearts -->
+        <div id="failedStep" class="hidden">
+            <div class="broken-hearts">
+                💔 💔 💔<br>
+                💔 💔 💔<br>
+                💔 💔 💔
+            </div>
+            <h2 style="text-align: center; color: #ff6b9d; margin: 30px 0;">Out of Tries!</h2>
+            <p style="text-align: center; margin-bottom: 30px;">You've used all 5 attempts</p>
+            
+            <button onclick="tryAgain()" class="btn btn-primary" style="width: 100%;">
+                Try with Different Name
+            </button>
+            
+            <button onclick="showLeaderboard()" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">
+                View Leaderboard
+            </button>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboardStep" class="hidden">
+            <h2 style="text-align: center; margin-bottom: 20px;">Leaderboard</h2>
+            <div id="leaderboardContent"></div>
+            <button onclick="goBack()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+                Back
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const vaultId = window.location.pathname.split('/v/')[1];
+        let currentName = '';
+
+        // Load vault data on page load
+        loadVaultData();
+
+        async function loadVaultData() {
+            try {
+                const response = await fetch(`/api/vault/${vaultId}`);
+                const vault = await response.json();
+                
+                console.log('Vault data:', vault);
+                
+                if (!response.ok) {
+                    showAlert('Vault not found', 'error');
+                    return;
+                }
+
+                // Store questions globally so they're available when needed
+                window.vaultQuestions = {
+                    question1: vault.question1,
+                    question2: vault.question2
+                };
+
+                // Set the questions immediately
+                document.getElementById('question1Label').textContent = vault.question1;
+                document.getElementById('question2Label').textContent = vault.question2;
+
+                console.log('Questions set:', vault.question1, vault.question2);
+
+                if (!vault.is_locked) {
+                    document.getElementById('nameStep').innerHTML = `
+                        <div class="alert alert-info">This vault has already been unlocked!</div>
+                        <button onclick="showLeaderboard()" class="btn btn-primary" style="width: 100%;">
+                            View Leaderboard
+                        </button>
+                    `;
+                }
+            } catch (error) {
+                console.error('Load vault error:', error);
+                showAlert('Failed to load vault', 'error');
+            }
+        }
+
+        document.getElementById('nameForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            currentName = document.getElementById('userName').value.trim();
+            
+            if (!currentName) {
+                showAlert('Please enter your name', 'error');
+                return;
+            }
+
+            // Check attempts
+            try {
+                const response = await fetch(`/api/check-attempts?vault_id=${vaultId}&name=${encodeURIComponent(currentName)}`);
+                const data = await response.json();
+                
+                if (!data.can_try) {
+                    document.getElementById('nameStep').classList.add('hidden');
+                    document.getElementById('failedStep').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('displayName').textContent = currentName;
+                document.getElementById('attemptsLeft').textContent = data.attempts_left;
+                document.getElementById('nameStep').classList.add('hidden');
+                document.getElementById('questionsStep').classList.remove('hidden');
+            } catch (error) {
+                showAlert('Network error', 'error');
+            }
+        });
+
+        document.getElementById('unlockForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            document.getElementById('unlockText').classList.add('hidden');
+            document.getElementById('unlockLoading').classList.remove('hidden');
+
+            const data = {
+                vault_id: vaultId,
+                name: currentName,
+                answer1: document.getElementById('answer1').value,
+                answer2: document.getElementById('answer2').value
+            };
+
+            try {
+                const response = await fetch('/api/unlock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Success!
+                    document.getElementById('finalScore').textContent = result.score;
+                    document.getElementById('letterContent').textContent = result.letter;
+                    document.getElementById('questionsStep').classList.add('hidden');
+                    document.getElementById('successStep').classList.remove('hidden');
+                    createLoveExplosion();
+                } else if (result.max_reached) {
+                    // Out of attempts
+                    document.getElementById('questionsStep').classList.add('hidden');
+                    document.getElementById('failedStep').classList.remove('hidden');
+                } else {
+                    // Wrong answer
+                    showAlert(`Wrong answer! ${result.attempts_left} tries left`, 'error');
+                    document.getElementById('attemptsLeft').textContent = result.attempts_left;
+                    document.getElementById('answer1').value = '';
+                    document.getElementById('answer2').value = '';
+                }
+            } catch (error) {
+                showAlert('Network error', 'error');
+            } finally {
+                document.getElementById('unlockText').classList.remove('hidden');
+                document.getElementById('unlockLoading').classList.add('hidden');
+            }
+        });
+
+        async function showLeaderboard() {
+            try {
+                const response = await fetch(`/api/leaderboard?vault_id=${vaultId}`);
+                const attempts = await response.json();
+
+                let html = '<div class="leaderboard">';
+                
+                if (attempts.length === 0) {
+                    html += '<p style="text-align: center; color: #999;">No attempts yet</p>';
+                } else {
+                    attempts.forEach((attempt, index) => {
+                        const icon = attempt.success ? '🏆' : '❌';
+                        const rank = index + 1;
+                        html += `
+                            <div class="leaderboard-item">
+                                <span class="rank">${rank}.</span>
+                                <span class="name">${icon} ${attempt.name}</span>
+                                <span class="score">${attempt.success ? attempt.score + ' pts' : 'Failed'}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                document.getElementById('leaderboardContent').innerHTML = html;
+
+                // Hide all steps
+                document.getElementById('nameStep').classList.add('hidden');
+                document.getElementById('questionsStep').classList.add('hidden');
+                document.getElementById('successStep').classList.add('hidden');
+                document.getElementById('failedStep').classList.add('hidden');
+                document.getElementById('leaderboardStep').classList.remove('hidden');
+            } catch (error) {
+                showAlert('Failed to load leaderboard', 'error');
+            }
+        }
+
+        function tryAgain() {
+            document.getElementById('userName').value = '';
+            document.getElementById('answer1').value = '';
+            document.getElementById('answer2').value = '';
+            document.getElementById('failedStep').classList.add('hidden');
+            document.getElementById('nameStep').classList.remove('hidden');
+        }
+
+        function goBack() {
+            document.getElementById('leaderboardStep').classList.add('hidden');
+            document.getElementById('successStep').classList.remove('hidden');
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertBox.innerHTML = '', 5000);
+        }
+
+        function createLoveExplosion() {
+            const emojis = ['💕', '💖', '💗', '💝', '💓', '💞', '💘', '❤️', '🌹', '✨'];
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    heart.className = 'floating-hearts';
+                    heart.style.left = Math.random() * window.innerWidth + 'px';
+                    heart.style.top = window.innerHeight - 50 + 'px';
+                    document.body.appendChild(heart);
+                    setTimeout(() => heart.remove(), 4000);
+                }, i * 100);
+            }
+        }
+
+        // Prevent copy-paste on answers
+        document.addEventListener('DOMContentLoaded', function() {
+            ['answer1', 'answer2'].forEach(id => {
+                const field = document.getElementById(id);
+                if (field) {
+                    field.addEventListener('contextmenu', e => e.preventDefault());
+                    field.addEventListener('copy', e => e.preventDefault());
+                    field.addEventListener('paste', e => e.preventDefault());
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .broken-hearts {
+            text-align: center;
+            font-size: 50px;
+            line-height: 1.2;
+            margin: 40px 0;
+            opacity: 0.3;
+        }
+
+        .leaderboard {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 15px;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item .rank {
+            font-weight: 700;
+            color: #999;
+            min-width: 30px;
+        }
+
+        .leaderboard-item .name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .leaderboard-item .score {
+            font-weight: 700;
+            color: #ff6b9d;
+        }
+    </style>
+</body>
+</html>
