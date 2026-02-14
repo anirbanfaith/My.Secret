@@ -34,14 +34,11 @@
         <div id="questionsStep" class="hidden">
             <p class="subtitle">Answer these questions to unlock</p>
             
-            <div class="vault-box">
-                <div class="locked-icon">🔐</div>
-                <h3><span id="displayName"></span>'s Attempt</h3>
-                <div class="vault-status">
-                    <div class="status-item">
-                        <div class="status-label">Tries Left</div>
-                        <div class="status-value" id="attemptsLeft">5</div>
-                    </div>
+            <div class="vault-box-small">
+                <div class="status-compact">
+                    <span id="displayName" style="font-weight: 700;"></span>
+                    <span style="opacity: 0.8;">•</span>
+                    <span id="attemptsLeft">5</span> tries left
                 </div>
             </div>
 
@@ -66,8 +63,8 @@
         <!-- Step 3: Success - Show Letter -->
         <div id="successStep" class="hidden">
             <div class="vault-box celebrate">
-                <div class="unlocked-icon">🎊 💕 🎉</div>
-                <h2 style="margin-bottom: 10px;">You Did It!</h2>
+                <div class="unlocked-icon">🎊</div>
+                <h2 style="margin-bottom: 10px;">Unlocked!</h2>
             </div>
 
             <div class="score-display">
@@ -77,9 +74,14 @@
 
             <div class="letter-content" id="letterContent"></div>
 
-            <button onclick="showLeaderboard()" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
-                View Leaderboard
-            </button>
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+                <a href="/" class="btn btn-primary" style="flex: 1;">
+                    Home
+                </a>
+                <button onclick="showLeaderboard()" class="btn btn-secondary" style="flex: 1;">
+                    Leaderboard
+                </button>
+            </div>
         </div>
 
         <!-- Step 4: Failed - Broken Hearts -->
@@ -254,12 +256,29 @@
                 const response = await fetch(`/api/leaderboard?vault_id=${vaultId}`);
                 const attempts = await response.json();
 
+                // Group by name and keep only best score
+                const bestScores = {};
+                attempts.forEach(attempt => {
+                    if (!bestScores[attempt.name] || 
+                        (attempt.success && attempt.score > (bestScores[attempt.name].score || 0)) ||
+                        (!bestScores[attempt.name].success && attempt.success)) {
+                        bestScores[attempt.name] = attempt;
+                    }
+                });
+
+                // Convert to array and sort
+                const leaderboard = Object.values(bestScores).sort((a, b) => {
+                    if (a.success !== b.success) return b.success - a.success; // Winners first
+                    if (a.success) return b.score - a.score; // Higher score first for winners
+                    return 0;
+                });
+
                 let html = '<div class="leaderboard">';
                 
-                if (attempts.length === 0) {
+                if (leaderboard.length === 0) {
                     html += '<p style="text-align: center; color: #999;">No attempts yet</p>';
                 } else {
-                    attempts.forEach((attempt, index) => {
+                    leaderboard.forEach((attempt, index) => {
                         const icon = attempt.success ? '🏆' : '❌';
                         const rank = index + 1;
                         html += `
@@ -306,8 +325,8 @@
         }
 
         function createLoveExplosion() {
-            const emojis = ['💕', '💖', '💗', '💝', '💓', '💞', '💘', '❤️', '🌹', '✨'];
-            for (let i = 0; i < 20; i++) {
+            const emojis = ['💕', '💖', '💗'];
+            for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     const heart = document.createElement('div');
                     heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
@@ -315,8 +334,8 @@
                     heart.style.left = Math.random() * window.innerWidth + 'px';
                     heart.style.top = window.innerHeight - 50 + 'px';
                     document.body.appendChild(heart);
-                    setTimeout(() => heart.remove(), 4000);
-                }, i * 100);
+                    setTimeout(() => heart.remove(), 3000);
+                }, i * 200);
             }
         }
 
@@ -340,6 +359,21 @@
             line-height: 1.2;
             margin: 40px 0;
             opacity: 0.3;
+        }
+
+        .vault-box-small {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.95) 0%, rgba(255, 148, 114, 0.95) 100%);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+            color: white;
+            box-shadow: 0 10px 35px rgba(255, 107, 157, 0.25);
+        }
+
+        .status-compact {
+            font-size: 16px;
+            font-weight: 500;
         }
 
         .leaderboard {
