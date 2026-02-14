@@ -114,7 +114,7 @@ func main() {
 
 	log.Printf("✨ My Secret starting on port %s\n", port)
 	log.Printf("🌐 Open http://localhost:%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }
 
 func createVault(w http.ResponseWriter, r *http.Request) {
