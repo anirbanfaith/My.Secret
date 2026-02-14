@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ❤️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success-content {
+            display: none;
+            animation: fadeIn 1s ease;
+        }
+
+        .success-content.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .heart {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: heartbeat 1.5s ease infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            10%, 30% { transform: scale(0.9); }
+            20%, 40% { transform: scale(1.1); }
+        }
+
+        .message {
+            color: #333;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-top: 20px;
+        }
+
+        .signature {
+            margin-top: 30px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .lock-content {
+            display: block;
+        }
+
+        .lock-content.hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Lock Screen -->
+        <div class="lock-content" id="lockContent">
+            <div class="lock-icon">🔒</div>
+            <h1>Something Special Awaits</h1>
+            <p class="subtitle">Enter the secret key to unlock your surprise</p>
+            
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="secretKey" 
+                    placeholder="Enter the key..."
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button onclick="checkKey()">Unlock</button>
+            
+            <div class="error-message" id="errorMessage">
+                ❌ Incorrect key. Try again!
+            </div>
+        </div>
+
+        <!-- Success Content (Hidden initially) -->
+        <div class="success-content" id="successContent">
+            <div class="heart">❤️</div>
+            <h1>Happy Anniversary, My Love!</h1>
+            
+            <div class="message">
+                <p>To the most amazing person in my life,</p>
+                <br>
+                <p>Every moment with you feels like a beautiful dream. Thank you for filling my days with laughter, love, and endless joy.</p>
+                <br>
+                <p>Here's to many more adventures together! 🌟</p>
+            </div>
+            
+            <div class="signature">
+                <p>Forever yours,</p>
+                <p>💕</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set your secret key here
+        const SECRET_KEY = "YourKey123!";  // CHANGE THIS to your desired key
+
+        function checkKey() {
+            const input = document.getElementById('secretKey');
+            const errorMessage = document.getElementById('errorMessage');
+            const lockContent = document.getElementById('lockContent');
+            const successContent = document.getElementById('successContent');
+
+            if (input.value === SECRET_KEY) {
+                // Correct key
+                errorMessage.classList.remove('show');
+                lockContent.classList.add('hide');
+                successContent.classList.add('show');
+                
+                // Optional: Add confetti or celebration effect
+                celebrate();
+            } else {
+                // Wrong key
+                errorMessage.classList.add('show');
+                input.value = '';
+                input.focus();
+                
+                // Remove error message after 2 seconds
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('secretKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkKey();
+            }
+        });
+
+        // Simple celebration function
+        function celebrate() {
+            // You can add confetti library here if you want
+            console.log('🎉 Key unlocked! 🎉');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Secret Vault</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+
+        <h1>✨ Create Your Vault</h1>
+        <p class="subtitle">Create a secure vault for your special message</p>
+
+        <div id="alertBox"></div>
+
+        <form id="createForm">
+            <div class="form-group">
+                <label for="vaultKey">🔑 Vault Key *</label>
+                <input type="password" id="vaultKey" required>
+                <div class="help-text">Create a strong key with uppercase, lowercase, numbers, and symbols (min 8 characters)</div>
+                <div class="requirements-list" id="keyRequirements">
+                    <ul>
+                        <li id="req-length">❌ At least 8 characters</li>
+                        <li id="req-upper">❌ Contains uppercase letter</li>
+                        <li id="req-lower">❌ Contains lowercase letter</li>
+                        <li id="req-number">❌ Contains number</li>
+                        <li id="req-symbol">❌ Contains symbol</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmKey">🔑 Confirm Key *</label>
+                <input type="password" id="confirmKey" required>
+            </div>
+
+            <div class="form-group">
+                <label for="question1">❓ Security Question 1 *</label>
+                <input type="text" id="question1" placeholder="e.g., What's our special nickname for each other?" required>
+                <div class="help-text">Choose questions only the recipient knows</div>
+            </div>
+
+            <div class="form-group">
+                <label for="answer1">✅ Answer 1 *</label>
+                <input type="text" id="answer1" required>
+                <div class="help-text">Answers are case-insensitive</div>
+            </div>
+
+            <div class="form-group">
+                <label for="question2">❓ Security Question 2 *</label>
+                <input type="text" id="question2" placeholder="e.g., Where did we first meet?" required>
+            </div>
+
+            <div class="form-group">
+                <label for="answer2">✅ Answer 2 *</label>
+                <input type="text" id="answer2" required>
+            </div>
+
+            <div class="form-group">
+                <label for="letter">💌 Your Secret Letter *</label>
+                <textarea id="letter" placeholder="Write your heartfelt message here..." required></textarea>
+                <div class="help-text">Pour your heart out - they'll only see this after unlocking the vault</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <span id="submitText">🎁 Create Vault</span>
+                <span id="submitLoading" class="loading hidden"></span>
+            </button>
+        </form>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="hidden">
+            <div class="vault-box celebrate">
+                <div class="vault-icon">✅</div>
+                <h2 style="margin-bottom: 15px;">Vault Created Successfully!</h2>
+                <p style="margin-bottom: 20px;">Share this Vault ID with your special someone:</p>
+                <div class="vault-id" id="vaultIdDisplay"></div>
+                <button onclick="copyVaultId()" class="copy-btn">📋 Copy Vault ID</button>
+                <div style="margin-top: 20px;">
+                    <a href="index.html" class="btn btn-primary" style="background: rgba(255,255,255,0.3); margin-right: 10px;">🏠 Home</a>
+                    <a href="unlock.html" class="btn btn-secondary" style="background: rgba(255,255,255,0.3);">🔓 Test Unlock</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vaultKeyInput = document.getElementById('vaultKey');
+        const confirmKeyInput = document.getElementById('confirmKey');
+        const form = document.getElementById('createForm');
+        let createdVaultId = '';
+
+        // Real-time key validation
+        vaultKeyInput.addEventListener('input', function() {
+            const key = this.value;
+            
+            // Check length
+            updateRequirement('req-length', key.length >= 8);
+            
+            // Check uppercase
+            updateRequirement('req-upper', /[A-Z]/.test(key));
+            
+            // Check lowercase
+            updateRequirement('req-lower', /[a-z]/.test(key));
+            
+            // Check number
+            updateRequirement('req-number', /[0-9]/.test(key));
+            
+            // Check symbol
+            updateRequirement('req-symbol', /[^A-Za-z0-9]/.test(key));
+        });
+
+        function updateRequirement(id, met) {
+            const element = document.getElementById(id);
+            if (met) {
+                element.innerHTML = element.innerHTML.replace('❌', '✅');
+                element.style.color = '#10b981';
+            } else {
+                element.innerHTML = element.innerHTML.replace('✅', '❌');
+                element.style.color = '#ef4444';
+            }
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const vaultKey = vaultKeyInput.value;
+            const confirmKey = confirmKeyInput.value;
+
+            // Validate key match
+            if (vaultKey !== confirmKey) {
+                showAlert('Keys do not match!', 'error');
+                return;
+            }
+
+            // Validate key strength
+            if (vaultKey.length < 8) {
+                showAlert('Key must be at least 8 characters long', 'error');
+                return;
+            }
+
+            if (!/[A-Z]/.test(vaultKey) || !/[a-z]/.test(vaultKey) || 
+                !/[0-9]/.test(vaultKey) || !/[^A-Za-z0-9]/.test(vaultKey)) {
+                showAlert('Key must contain uppercase, lowercase, number, and symbol', 'error');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('submitText').classList.add('hidden');
+            document.getElementById('submitLoading').classList.remove('hidden');
+
+            const data = {
+                vault_key: vaultKey,
+                question1: document.getElementById('question1').value,
+                answer1: document.getElementById('answer1').value,
+                question2: document.getElementById('question2').value,
+                answer2: document.getElementById('answer2').value,
+                letter: document.getElementById('letter').value
+            };
+
+            try {
+                const response = await fetch('/api/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    createdVaultId = result.vault_id;
+                    document.getElementById('vaultIdDisplay').textContent = result.vault_id;
+                    form.classList.add('hidden');
+                    document.getElementById('successModal').classList.remove('hidden');
+                } else {
+                    showAlert(result.error || 'Failed to create vault', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            } finally {
+                document.getElementById('submitText').classList.remove('hidden');
+                document.getElementById('submitLoading').classList.add('hidden');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+
+        function copyVaultId() {
+            navigator.clipboard.writeText(createdVaultId).then(() => {
+                showAlert('Vault ID copied to clipboard!', 'success');
+            });
+        }
+    </script>
+</body>
+</html>
