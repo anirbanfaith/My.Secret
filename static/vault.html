@@ -115,13 +115,29 @@
         const vaultId = window.location.pathname.split('/v/')[1];
         let currentName = '';
 
-        // Load vault data on page load
-        loadVaultData();
+        // Check if we have a vault ID
+        if (!vaultId || vaultId.trim() === '') {
+            document.getElementById('alertBox').innerHTML = 
+                '<div class="alert alert-error">Invalid vault link. Please check the URL.</div>';
+            console.error('No vault ID found in URL:', window.location.pathname);
+        } else {
+            console.log('Vault ID:', vaultId);
+            // Load vault data on page load
+            loadVaultData();
+        }
 
         async function loadVaultData() {
+            console.log('Loading vault data for:', vaultId);
+            
             try {
-                const response = await fetch(`/api/vault/${vaultId}`);
+                const url = `/api/vault/${vaultId}`;
+                console.log('Fetching:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                
                 const vault = await response.json();
+                console.log('Vault data:', vault);
                 
                 console.log('Vault data:', vault);
                 

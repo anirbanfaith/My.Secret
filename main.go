@@ -54,13 +54,25 @@ func generateVaultID() string {
 
 func initDB() {
 	var err error
-	os.MkdirAll("./data", 0755)
-	db, err = sql.Open("sqlite3", "./data/vaults.db")
-	if err != nil {
-		log.Fatal(err)
+
+	// Create data directory
+	if err := os.MkdirAll("./data", 0755); err != nil {
+		log.Fatal("Failed to create data directory:", err)
 	}
 
-	db.Exec(`
+	// Open database
+	db, err = sql.Open("sqlite3", "./data/vaults.db")
+	if err != nil {
+		log.Fatal("Failed to open database:", err)
+	}
+
+	// Test connection
+	if err := db.Ping(); err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	// Create vaults table
+	_, err = db.Exec(`
 	CREATE TABLE IF NOT EXISTS vaults (
 		id TEXT PRIMARY KEY,
 		question1 TEXT NOT NULL,
@@ -71,8 +83,12 @@ func initDB() {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		is_locked BOOLEAN DEFAULT 1
 	)`)
+	if err != nil {
+		log.Fatal("Failed to create vaults table:", err)
+	}
 
-	db.Exec(`
+	// Create attempts table
+	_, err = db.Exec(`
 	CREATE TABLE IF NOT EXISTS attempts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		vault_id TEXT NOT NULL,
@@ -81,6 +97,11 @@ func initDB() {
 		success BOOLEAN DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
+	if err != nil {
+		log.Fatal("Failed to create attempts table:", err)
+	}
+
+	log.Println("✅ Database initialized successfully")
 }
 
 func createVaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +121,7 @@ func createVaultHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&req)
 
 	if req.Question1 == "" || req.Answer1 == "" || req.Question2 == "" || req.Answer2 == "" || req.Letter == "" {
+		log.Println("❌ Create vault failed: missing fields")
 		http.Error(w, "All fields required", http.StatusBadRequest)
 		return
 	}
@@ -108,14 +130,22 @@ func createVaultHandler(w http.ResponseWriter, r *http.Request) {
 	answer1Hash := hashPassword(req.Answer1, nil)
 	answer2Hash := hashPassword(req.Answer2, nil)
 
-	db.Exec(`INSERT INTO vaults (id, question1, answer1_hash, question2, answer2_hash, letter)
+	_, err := db.Exec(`INSERT INTO vaults (id, question1, answer1_hash, question2, answer2_hash, letter)
 		VALUES (?, ?, ?, ?, ?, ?)`, vaultID, req.Question1, answer1Hash, req.Question2, answer2Hash, req.Letter)
+
+	if err != nil {
+		log.Printf("❌ Database insert failed: %v\n", err)
+		http.Error(w, "Failed to create vault", http.StatusInternalServerError)
+		return
+	}
 
 	scheme := "http"
 	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
 		scheme = "https"
 	}
 	vaultURL := fmt.Sprintf("%s://%s/v/%s", scheme, r.Host, vaultID)
+
+	log.Printf("✅ Vault created: %s\n", vaultID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -126,6 +156,7 @@ func createVaultHandler(w http.ResponseWriter, r *http.Request) {
 
 func getVaultHandler(w http.ResponseWriter, r *http.Request) {
 	vaultID := strings.TrimPrefix(r.URL.Path, "/api/vault/")
+	log.Printf("📖 Getting vault: %s\n", vaultID)
 
 	var question1, question2 string
 	var isLocked bool
@@ -134,9 +165,18 @@ func getVaultHandler(w http.ResponseWriter, r *http.Request) {
 		Scan(&question1, &question2, &isLocked)
 
 	if err == sql.ErrNoRows {
+		log.Printf("❌ Vault not found: %s\n", vaultID)
 		http.Error(w, "Vault not found", http.StatusNotFound)
 		return
 	}
+
+	if err != nil {
+		log.Printf("❌ Database error: %v\n", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ Vault found: %s (locked: %v)\n", vaultID, isLocked)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
