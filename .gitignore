@@ -1,21 +1,13 @@
-# Database
-data/
-*.db
+# Data
+data.json
 
 # Go
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
 main
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
-Thumbs.db

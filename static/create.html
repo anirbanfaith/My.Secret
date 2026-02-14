@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Your Secret Vault</title>
+    <title>Create Secret</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <a href="/" class="back-link">← Back</a>
 
-        <div class="logo">
-            <div class="heart-icon">✍️</div>
-            <div class="logo-text">Create Vault</div>
-        </div>
+        <div class="logo-text">Create Secret</div>
 
-        <p class="subtitle">Create a secret vault for someone special</p>
+        <p class="subtitle">Write a message for someone special</p>
 
         <div id="alertBox"></div>
 
         <form id="createForm">
             <div class="form-group">
                 <label for="question1">Question 1</label>
-                <input type="text" id="question1" placeholder="What's our special nickname?" required>
+                <input type="text" id="question1" placeholder="What's my nickname?" required>
             </div>
 
             <div class="form-group">
@@ -32,7 +29,7 @@
 
             <div class="form-group">
                 <label for="question2">Question 2</label>
-                <input type="text" id="question2" placeholder="Where did we first meet?" required>
+                <input type="text" id="question2" placeholder="Where did we meet?" required>
             </div>
 
             <div class="form-group">
@@ -42,27 +39,28 @@
 
             <div class="form-group">
                 <label for="letter">Your Secret Letter</label>
-                <textarea id="letter" placeholder="Dear love, I wanted to tell you..." required></textarea>
+                <textarea id="letter" placeholder="Dear Beloved,
+
+I have so much to tell you..." required></textarea>
                 <div class="help-text">Write from your heart</div>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%;">
-                <span id="submitText">Create Vault</span>
+            <button type="submit" class="btn" style="width: 100%;">
+                <span id="submitText">Create Secret</span>
                 <span id="submitLoading" class="loading hidden"></span>
             </button>
         </form>
 
         <!-- Success Modal -->
         <div id="successModal" class="hidden">
-            <div class="vault-box celebrate">
-                <div class="vault-icon">🎁</div>
-                <h2 style="margin-bottom: 15px;">Vault Created!</h2>
-                <p style="margin-bottom: 20px;">Share this link with your special someone:</p>
+            <div class="vault-box">
+                <h2>Secret Created!</h2>
+                <p style="margin: 20px 0;">Share this link with your special someone:</p>
                 <div class="vault-id" id="vaultUrlDisplay"></div>
-                <button onclick="copyVaultUrl()" class="copy-btn">Copy Link</button>
+                <button onclick="copyVaultUrl()" class="btn" style="margin-top: 20px;">Copy Link</button>
                 <div style="margin-top: 20px;">
-                    <a href="/" class="btn btn-primary" style="background: rgba(255,255,255,0.3); margin-right: 10px;">Home</a>
-                    <a id="testLink" href="#" class="btn btn-secondary" style="background: rgba(255,255,255,0.3);">Test It</a>
+                    <a href="/" class="btn btn-outline">Home</a>
+                    <a id="testLink" href="#" class="btn" style="margin-left: 10px;">Test It</a>
                 </div>
             </div>
         </div>
@@ -75,8 +73,10 @@
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            const submitBtn = document.querySelector('button[type="submit"]');
             document.getElementById('submitText').classList.add('hidden');
             document.getElementById('submitLoading').classList.remove('hidden');
+            submitBtn.disabled = true;
 
             const data = {
                 question1: document.getElementById('question1').value,
@@ -89,26 +89,30 @@
             try {
                 const response = await fetch('/api/create', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
                 const result = await response.json();
+                console.log('API Response:', result); // Debug log
 
-                if (response.ok) {
+                if (response.ok && result.vault_url) {
                     createdVaultUrl = result.vault_url;
                     document.getElementById('vaultUrlDisplay').textContent = result.vault_url;
                     document.getElementById('testLink').href = result.vault_url;
-                    form.classList.add('hidden');
+                    
+                    // Hide form and show success
+                    document.getElementById('createForm').style.display = 'none';
                     document.getElementById('successModal').classList.remove('hidden');
-                    createFloatingHearts();
+                    document.getElementById('successModal').style.display = 'block';
                 } else {
-                    showAlert('Failed to create vault', 'error');
+                    showAlert('Failed to create secret', 'error');
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
-                showAlert('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+                showAlert('Network error: ' + error.message, 'error');
+                submitBtn.disabled = false;
             } finally {
                 document.getElementById('submitText').classList.remove('hidden');
                 document.getElementById('submitLoading').classList.add('hidden');
@@ -118,29 +122,13 @@
         function showAlert(message, type) {
             const alertBox = document.getElementById('alertBox');
             alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-            setTimeout(() => {
-                alertBox.innerHTML = '';
-            }, 5000);
+            setTimeout(() => alertBox.innerHTML = '', 5000);
         }
 
         function copyVaultUrl() {
             navigator.clipboard.writeText(createdVaultUrl).then(() => {
                 showAlert('Link copied to clipboard!', 'success');
             });
-        }
-
-        function createFloatingHearts() {
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => {
-                    const heart = document.createElement('div');
-                    heart.textContent = ['💕', '💖', '💗', '💝'][Math.floor(Math.random() * 4)];
-                    heart.className = 'floating-hearts';
-                    heart.style.left = Math.random() * window.innerWidth + 'px';
-                    heart.style.top = window.innerHeight - 50 + 'px';
-                    document.body.appendChild(heart);
-                    setTimeout(() => heart.remove(), 3000);
-                }, i * 200);
-            }
         }
     </script>
 </body>

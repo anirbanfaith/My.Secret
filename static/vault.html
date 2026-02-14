@@ -8,10 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <div class="heart-icon">🔒</div>
-            <div class="logo-text">Secret Vault</div>
-        </div>
+        <div class="logo-text">My Secret</div>
 
         <div id="alertBox"></div>
 
@@ -24,9 +21,7 @@
                     <input type="text" id="userName" placeholder="Your name" required>
                     <div class="help-text">This will be shown on the leaderboard</div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    Continue
-                </button>
+                <button type="submit" class="btn" style="width: 100%;">Continue</button>
             </form>
         </div>
 
@@ -36,9 +31,7 @@
             
             <div class="vault-box-small">
                 <div class="status-compact">
-                    <span id="displayName" style="font-weight: 700;"></span>
-                    <span style="opacity: 0.8;">•</span>
-                    <span id="attemptsLeft">5</span> tries left
+                    <span id="displayName"></span> • <span id="attemptsLeft">5</span> tries left
                 </div>
             </div>
 
@@ -53,63 +46,47 @@
                     <input type="text" id="answer2" placeholder="Your answer" required autocomplete="off">
                 </div>
 
-                <button type="submit" class="btn btn-success" style="width: 100%;">
-                    <span id="unlockText">Unlock Vault</span>
+                <button type="submit" class="btn" style="width: 100%;">
+                    <span id="unlockText">Unlock Secret</span>
                     <span id="unlockLoading" class="loading hidden"></span>
                 </button>
             </form>
         </div>
 
-        <!-- Step 3: Success - Show Letter -->
+        <!-- Step 3: Success -->
         <div id="successStep" class="hidden">
-            <div class="vault-box celebrate">
-                <div class="unlocked-icon">🎊</div>
-                <h2 style="margin-bottom: 10px;">Unlocked!</h2>
+            <div class="vault-box">
+                <h2>Unlocked!</h2>
             </div>
 
             <div class="score-display">
                 <div class="score-circle" id="finalScore">100</div>
-                <p style="margin-top: 15px;">Your Score</p>
+                <p style="margin-top: 15px; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Your Score</p>
             </div>
 
             <div class="letter-content" id="letterContent"></div>
 
-            <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <a href="/" class="btn btn-primary" style="flex: 1;">
-                    Home
-                </a>
-                <button onclick="showLeaderboard()" class="btn btn-secondary" style="flex: 1;">
-                    Leaderboard
-                </button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="/" class="btn btn-outline" style="flex: 1; text-align: center;">Home</a>
+                <button onclick="showLeaderboard()" class="btn" style="flex: 1;">Leaderboard</button>
             </div>
         </div>
 
-        <!-- Step 4: Failed - Broken Hearts -->
+        <!-- Step 4: Failed -->
         <div id="failedStep" class="hidden">
-            <div class="broken-hearts">
-                💔 💔 💔<br>
-                💔 💔 💔<br>
-                💔 💔 💔
-            </div>
-            <h2 style="text-align: center; color: #ff6b9d; margin: 30px 0;">Out of Tries!</h2>
-            <p style="text-align: center; margin-bottom: 30px;">You've used all 5 attempts</p>
+            <div class="broken-hearts">💔 💔 💔<br>💔 💔 💔</div>
+            <h2>Out of Tries</h2>
+            <p style="text-align: center; margin: 20px 0;">You've used all 5 attempts</p>
             
-            <button onclick="tryAgain()" class="btn btn-primary" style="width: 100%;">
-                Try with Different Name
-            </button>
-            
-            <button onclick="showLeaderboard()" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">
-                View Leaderboard
-            </button>
+            <button onclick="tryAgain()" class="btn btn-outline" style="width: 100%;">Try Different Name</button>
+            <button onclick="showLeaderboard()" class="btn" style="width: 100%; margin-top: 15px;">Leaderboard</button>
         </div>
 
         <!-- Leaderboard -->
         <div id="leaderboardStep" class="hidden">
-            <h2 style="text-align: center; margin-bottom: 20px;">Leaderboard</h2>
+            <h2>Leaderboard</h2>
             <div id="leaderboardContent"></div>
-            <button onclick="goBack()" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-                Back
-            </button>
+            <button onclick="goBack()" class="btn" style="width: 100%; margin-top: 20px;">Back</button>
         </div>
     </div>
 
@@ -117,60 +94,33 @@
         const vaultId = window.location.pathname.split('/v/')[1];
         let currentName = '';
 
-        // Check if we have a vault ID
-        if (!vaultId || vaultId.trim() === '') {
-            document.getElementById('alertBox').innerHTML = 
-                '<div class="alert alert-error">Invalid vault link. Please check the URL.</div>';
-            console.error('No vault ID found in URL:', window.location.pathname);
+        if (!vaultId) {
+            document.getElementById('alertBox').innerHTML = '<div class="alert alert-error">Invalid link</div>';
         } else {
-            console.log('Vault ID:', vaultId);
-            // Load vault data on page load
             loadVaultData();
         }
 
         async function loadVaultData() {
-            console.log('Loading vault data for:', vaultId);
-            
             try {
-                const url = `/api/vault/${vaultId}`;
-                console.log('Fetching:', url);
-                
-                const response = await fetch(url);
-                console.log('Response status:', response.status);
-                
+                const response = await fetch(`/api/vault/${vaultId}`);
                 const vault = await response.json();
-                console.log('Vault data:', vault);
-                
-                console.log('Vault data:', vault);
                 
                 if (!response.ok) {
-                    showAlert('Vault not found', 'error');
+                    showAlert('Secret not found', 'error');
                     return;
                 }
 
-                // Store questions globally so they're available when needed
-                window.vaultQuestions = {
-                    question1: vault.question1,
-                    question2: vault.question2
-                };
-
-                // Set the questions immediately
                 document.getElementById('question1Label').textContent = vault.question1;
                 document.getElementById('question2Label').textContent = vault.question2;
 
-                console.log('Questions set:', vault.question1, vault.question2);
-
                 if (!vault.is_locked) {
                     document.getElementById('nameStep').innerHTML = `
-                        <div class="alert alert-info">This vault has already been unlocked!</div>
-                        <button onclick="showLeaderboard()" class="btn btn-primary" style="width: 100%;">
-                            View Leaderboard
-                        </button>
+                        <div class="alert">This secret has already been unlocked!</div>
+                        <button onclick="showLeaderboard()" class="btn" style="width: 100%;">View Leaderboard</button>
                     `;
                 }
             } catch (error) {
-                console.error('Load vault error:', error);
-                showAlert('Failed to load vault', 'error');
+                showAlert('Failed to load secret', 'error');
             }
         }
 
@@ -183,7 +133,6 @@
                 return;
             }
 
-            // Check attempts
             try {
                 const response = await fetch(`/api/check-attempts?vault_id=${vaultId}&name=${encodeURIComponent(currentName)}`);
                 const data = await response.json();
@@ -226,18 +175,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Success!
                     document.getElementById('finalScore').textContent = result.score;
                     document.getElementById('letterContent').textContent = result.letter;
                     document.getElementById('questionsStep').classList.add('hidden');
                     document.getElementById('successStep').classList.remove('hidden');
-                    createLoveExplosion();
                 } else if (result.max_reached) {
-                    // Out of attempts
                     document.getElementById('questionsStep').classList.add('hidden');
                     document.getElementById('failedStep').classList.remove('hidden');
                 } else {
-                    // Wrong answer
                     showAlert(`Wrong answer! ${result.attempts_left} tries left`, 'error');
                     document.getElementById('attemptsLeft').textContent = result.attempts_left;
                     document.getElementById('answer1').value = '';
@@ -256,7 +201,6 @@
                 const response = await fetch(`/api/leaderboard?vault_id=${vaultId}`);
                 const attempts = await response.json();
 
-                // Group by name and keep only best score
                 const bestScores = {};
                 attempts.forEach(attempt => {
                     if (!bestScores[attempt.name] || 
@@ -266,20 +210,19 @@
                     }
                 });
 
-                // Convert to array and sort
                 const leaderboard = Object.values(bestScores).sort((a, b) => {
-                    if (a.success !== b.success) return b.success - a.success; // Winners first
-                    if (a.success) return b.score - a.score; // Higher score first for winners
+                    if (a.success !== b.success) return b.success - a.success;
+                    if (a.success) return b.score - a.score;
                     return 0;
                 });
 
                 let html = '<div class="leaderboard">';
                 
                 if (leaderboard.length === 0) {
-                    html += '<p style="text-align: center; color: #999;">No attempts yet</p>';
+                    html += '<div style="padding: 20px; text-align: center; opacity: 0.5;">No attempts yet</div>';
                 } else {
                     leaderboard.forEach((attempt, index) => {
-                        const icon = attempt.success ? '🏆' : '❌';
+                        const icon = attempt.success ? '✓' : '✗';
                         const rank = index + 1;
                         html += `
                             <div class="leaderboard-item">
@@ -294,7 +237,6 @@
                 html += '</div>';
                 document.getElementById('leaderboardContent').innerHTML = html;
 
-                // Hide all steps
                 document.getElementById('nameStep').classList.add('hidden');
                 document.getElementById('questionsStep').classList.add('hidden');
                 document.getElementById('successStep').classList.add('hidden');
@@ -324,91 +266,15 @@
             setTimeout(() => alertBox.innerHTML = '', 5000);
         }
 
-        function createLoveExplosion() {
-            const emojis = ['💕', '💖', '💗'];
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const heart = document.createElement('div');
-                    heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    heart.className = 'floating-hearts';
-                    heart.style.left = Math.random() * window.innerWidth + 'px';
-                    heart.style.top = window.innerHeight - 50 + 'px';
-                    document.body.appendChild(heart);
-                    setTimeout(() => heart.remove(), 3000);
-                }, i * 200);
+        // Prevent copy-paste
+        ['answer1', 'answer2'].forEach(id => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.addEventListener('contextmenu', e => e.preventDefault());
+                field.addEventListener('copy', e => e.preventDefault());
+                field.addEventListener('paste', e => e.preventDefault());
             }
-        }
-
-        // Prevent copy-paste on answers
-        document.addEventListener('DOMContentLoaded', function() {
-            ['answer1', 'answer2'].forEach(id => {
-                const field = document.getElementById(id);
-                if (field) {
-                    field.addEventListener('contextmenu', e => e.preventDefault());
-                    field.addEventListener('copy', e => e.preventDefault());
-                    field.addEventListener('paste', e => e.preventDefault());
-                }
-            });
         });
     </script>
-
-    <style>
-        .broken-hearts {
-            text-align: center;
-            font-size: 50px;
-            line-height: 1.2;
-            margin: 40px 0;
-            opacity: 0.3;
-        }
-
-        .vault-box-small {
-            background: linear-gradient(135deg, rgba(255, 107, 157, 0.95) 0%, rgba(255, 148, 114, 0.95) 100%);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            margin: 25px 0;
-            color: white;
-            box-shadow: 0 10px 35px rgba(255, 107, 157, 0.25);
-        }
-
-        .status-compact {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .leaderboard {
-            background: #fff;
-            border-radius: 15px;
-            padding: 20px;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
-            gap: 15px;
-        }
-
-        .leaderboard-item:last-child {
-            border-bottom: none;
-        }
-
-        .leaderboard-item .rank {
-            font-weight: 700;
-            color: #999;
-            min-width: 30px;
-        }
-
-        .leaderboard-item .name {
-            flex: 1;
-            font-weight: 600;
-        }
-
-        .leaderboard-item .score {
-            font-weight: 700;
-            color: #ff6b9d;
-        }
-    </style>
 </body>
 </html>
