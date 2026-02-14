@@ -1,0 +1,21 @@
+# Database
+data/
+*.db
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
