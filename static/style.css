@@ -98,6 +98,14 @@ body::after {
     20% { transform: scale(1); }
 }
 
+a {
+    text-align: end;
+    color:#4a3933;
+    text-decoration: none;
+    border: none;
+
+}
+
 h1 {
     color: var(--text-dark);
     text-align: center;
