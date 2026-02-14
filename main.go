@@ -13,8 +13,9 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	// UPDATED: Using pure Go SQLite driver to fix Railway CGO errors
 	"golang.org/x/crypto/argon2"
+	_ "modernc.org/sqlite"
 )
 
 type Attempt struct {
@@ -60,8 +61,8 @@ func initDB() {
 		log.Fatal("Failed to create data directory:", err)
 	}
 
-	// Open database
-	db, err = sql.Open("sqlite3", "./data/vaults.db")
+	// UPDATED: Driver name changed from "sqlite3" to "sqlite"
+	db, err = sql.Open("sqlite", "./data/vaults.db")
 	if err != nil {
 		log.Fatal("Failed to open database:", err)
 	}
@@ -73,30 +74,30 @@ func initDB() {
 
 	// Create vaults table
 	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS vaults (
-		id TEXT PRIMARY KEY,
-		question1 TEXT NOT NULL,
-		answer1_hash TEXT NOT NULL,
-		question2 TEXT NOT NULL,
-		answer2_hash TEXT NOT NULL,
-		letter TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		is_locked BOOLEAN DEFAULT 1
-	)`)
+    CREATE TABLE IF NOT EXISTS vaults (
+        id TEXT PRIMARY KEY,
+        question1 TEXT NOT NULL,
+        answer1_hash TEXT NOT NULL,
+        question2 TEXT NOT NULL,
+        answer2_hash TEXT NOT NULL,
+        letter TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        is_locked BOOLEAN DEFAULT 1
+    )`)
 	if err != nil {
 		log.Fatal("Failed to create vaults table:", err)
 	}
 
 	// Create attempts table
 	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS attempts (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		vault_id TEXT NOT NULL,
-		name TEXT NOT NULL,
-		score INTEGER DEFAULT 100,
-		success BOOLEAN DEFAULT 0,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	)`)
+    CREATE TABLE IF NOT EXISTS attempts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        vault_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        score INTEGER DEFAULT 100,
+        success BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`)
 	if err != nil {
 		log.Fatal("Failed to create attempts table:", err)
 	}
@@ -131,7 +132,7 @@ func createVaultHandler(w http.ResponseWriter, r *http.Request) {
 	answer2Hash := hashPassword(req.Answer2, nil)
 
 	_, err := db.Exec(`INSERT INTO vaults (id, question1, answer1_hash, question2, answer2_hash, letter)
-		VALUES (?, ?, ?, ?, ?, ?)`, vaultID, req.Question1, answer1Hash, req.Question2, answer2Hash, req.Letter)
+        VALUES (?, ?, ?, ?, ?, ?)`, vaultID, req.Question1, answer1Hash, req.Question2, answer2Hash, req.Letter)
 
 	if err != nil {
 		log.Printf("❌ Database insert failed: %v\n", err)
@@ -284,10 +285,10 @@ func getLeaderboardHandler(w http.ResponseWriter, r *http.Request) {
 	vaultID := r.URL.Query().Get("vault_id")
 
 	rows, err := db.Query(`
-		SELECT name, score, success, created_at 
-		FROM attempts 
-		WHERE vault_id = ? 
-		ORDER BY success DESC, score DESC, created_at ASC`, vaultID)
+        SELECT name, score, success, created_at 
+        FROM attempts 
+        WHERE vault_id = ? 
+        ORDER BY success DESC, score DESC, created_at ASC`, vaultID)
 
 	if err != nil {
 		http.Error(w, "Server error", http.StatusInternalServerError)
@@ -310,7 +311,7 @@ func main() {
 	initDB()
 	defer db.Close()
 
-	// API endpoints FIRST (more specific routes)
+	// API endpoints
 	http.HandleFunc("/api/create", createVaultHandler)
 	http.HandleFunc("/api/vault/", getVaultHandler)
 	http.HandleFunc("/api/check-attempts", checkAttemptsHandler)
@@ -330,7 +331,7 @@ func main() {
 		http.ServeFile(w, r, "./static/vault.html")
 	})
 
-	// Homepage - LAST (least specific)
+	// Homepage
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			http.ServeFile(w, r, "./static/index.html")
@@ -345,12 +346,5 @@ func main() {
 	}
 
 	log.Printf("🔒 Secret Vault starting on port %s\n", port)
-	log.Printf("📂 Serving static files from ./static\n")
-	log.Printf("🌐 Open http://localhost:%s\n", port)
-	log.Printf("🔧 API endpoints:\n")
-	log.Printf("   POST /api/create\n")
-	log.Printf("   GET  /api/vault/:id\n")
-	log.Printf("   POST /api/unlock\n")
-	log.Printf("   GET  /api/leaderboard\n")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
