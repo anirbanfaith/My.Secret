@@ -43,6 +43,12 @@ h1, h2, h3 {
     font-weight: 700;
 }
 
+a {
+      color: #2d2d2d;
+      text-decoration: none;
+      border: none;
+    }
+
 .subtitle {
     text-align: center;
     margin-bottom: 40px;
