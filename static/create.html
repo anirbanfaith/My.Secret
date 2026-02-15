@@ -124,7 +124,8 @@ I have so much to tell you, but only this much space on this letter! Still, you 
             alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
             setTimeout(() => alertBox.innerHTML = '', 5000);
         }
-
+        
+            
         function copyVaultUrl() {
             navigator.clipboard.writeText(createdVaultUrl).then(() => {
                 showAlert('Link copied to clipboard!', 'success');

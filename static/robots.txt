@@ -1,0 +1,47 @@
+# robots.txt for My Secret
+
+User-agent: *
+Disallow: /api/
+Disallow: /v/
+Crawl-delay: 10
+
+# Block common scrapers and bots
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+# Allow homepage for search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /v/
+Disallow: /create
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /v/
+Disallow: /create
+
+# Sitemap (optional)
+Sitemap: https://mysecret-production.up.railway.app/

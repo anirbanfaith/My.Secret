@@ -91,6 +91,11 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	// Robots.txt for SEO and bot protection
+	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/robots.txt")
+	})
+
 	// Static files
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
