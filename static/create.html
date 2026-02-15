@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create Secret</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
@@ -124,7 +125,7 @@ I have so much to tell you, but only this much space on this letter! Still, you 
             alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
             setTimeout(() => alertBox.innerHTML = '', 5000);
         }
-        
+
             
         function copyVaultUrl() {
             navigator.clipboard.writeText(createdVaultUrl).then(() => {
