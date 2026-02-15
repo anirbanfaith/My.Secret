@@ -319,3 +319,9 @@ textarea::placeholder {
         font-size: 2.5em;
     }
 }
+
+a {
+      color: #2d2d2d;
+      text-decoration: none;
+      border: none;
+    }
