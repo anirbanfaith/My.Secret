@@ -23,6 +23,10 @@
                 </div>
                 <button type="submit" class="btn" style="width: 100%;">Continue</button>
             </form>
+            
+            <button onclick="showLeaderboard()" class="btn btn-outline" style="width: 100%; margin-top: 15px;">
+                View Leaderboard
+            </button>
         </div>
 
         <!-- Step 2: Answer Questions -->
@@ -250,7 +254,15 @@
 
         function goBack() {
             document.getElementById('leaderboardStep').classList.add('hidden');
-            document.getElementById('successStep').classList.remove('hidden');
+            
+            // Check if they came from success or from initial screen
+            if (document.getElementById('successStep').classList.contains('hidden')) {
+                // Came from initial screen, go back there
+                document.getElementById('nameStep').classList.remove('hidden');
+            } else {
+                // Came from success, go back to success
+                document.getElementById('successStep').classList.remove('hidden');
+            }
         }
 
         function showAlert(message, type) {
