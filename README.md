@@ -1,404 +1,164 @@
-# 💝 My Secret - A Romantic Secret Message Vault
+# My Secret
 
-A beautiful web application for creating and sharing encrypted secret messages with someone special. Built with Go and designed with a minimalist, romantic aesthetic inspired by digibouquet.
+A web application for creating and sharing encrypted secret messages with loved ones through link-based access and question verification.
 
-![My Secret](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-active-success)
+## Overview
 
-## ✨ Features
+My Secret allows users to create private vaults containing secret messages that can only be unlocked by answering two custom security questions. Each vault is accessible via a unique URL and tracks all unlock attempts with a built-in leaderboard system.
 
-### 🎯 Core Features
-- **Link-Based Access** - Each vault gets a unique shareable URL
-- **Challenge Questions** - Protect messages with 2 custom security questions
-- **Per-Person Attempts** - Each person gets 5 independent attempts (tracked by name)
-- **Multiple Winners** - Everyone who answers correctly can read the message
-- **Live Leaderboard** - See who tried and their scores in real-time
-- **Score System** - Points based on attempts: 100 → 80 → 60 → 40 → 20
+## Features
 
-### 🎨 Design
-- **Digibouquet-Inspired Aesthetic** - Clean, minimalist, romantic
-- **Typography** - Libre Baskerville (serif) + Courier New (monospace)
-- **Color Palette** - Cream (#f5f0e8), White (#fefcf7), Black borders
-- **Responsive** - Works on mobile, tablet, and desktop
-- **No Database Required** - Uses simple JSON file storage
+- **Link-Based Access**: Each vault generates a unique shareable URL
+- **Dual Question Security**: Two custom security questions protect each message
+- **Attempt Tracking**: Five attempts per unique name
+- **Leaderboard System**: Track and display all unlock attempts with scores
+- **Multiple Unlocks**: Different people can independently unlock the same vault
+- **Score Calculation**: 100 points minus 20 points per failed attempt (minimum 20)
+- **Simple JSON Storage**: No database required - uses file-based storage
 
-### 🔒 Privacy & Security
-- **Case-Insensitive Answers** - Automatic normalization
-- **No Copy-Paste** - Answer fields protected from copying
-- **Rate Limiting** - 5 attempts per name prevents brute force
-- **Local Storage** - Data stored in `data.json` file
+## Technology Stack
 
----
+- **Backend**: Go (Golang)
+- **Storage**: JSON file-based persistence
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Fonts**: Libre Baskerville (serif), Courier New (monospace)
+- **Hosting**: Railway.app (or any Go-compatible platform)
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Go 1.21 or higher
-- Git
-
-### Local Development
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/My.Secret.git
-cd My.Secret
-
-# Run the server
-go run main.go
-
-# Open in browser
-http://localhost:3000
-```
-
-That's it! The app will create a `data.json` file automatically.
-
----
-
-## 📖 How It Works
-
-### For Creators
-
-1. **Visit the homepage** → Click "Create Secret"
-2. **Fill in the form:**
-   - Question 1 & Answer 1 (e.g., "What's my nickname?" → "Honey")
-   - Question 2 & Answer 2 (e.g., "Where did we meet?" → "Paris")
-   - Write your secret letter (handwritten-style text area)
-3. **Get a unique link** → Share with your special someone
-4. **Track attempts** → See who tried via the leaderboard
-
-### For Recipients
-
-1. **Open the secret link** (e.g., `yoursite.com/v/abc123xyz`)
-2. **Check leaderboard** (optional) → See who already tried
-3. **Enter your name** → Get 5 attempts
-4. **Answer the questions** → Tries left shown in real-time
-5. **Success!** → Read the secret letter + see your score
-6. **View leaderboard** → See your ranking
-
----
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 My.Secret/
-├── main.go              # Go server (API + routing)
-├── go.mod               # Go dependencies
-├── data.json            # Auto-created data storage
-├── static/
-│   ├── style.css        # Beautiful digibouquet styling
-│   ├── index.html       # Homepage
-│   ├── create.html      # Create vault form
-│   └── vault.html       # Unlock vault page
+├── main.go              # Go server application
+├── go.mod              # Go module definition
+├── go.sum              # Go dependencies checksum
+├── data.json           # Storage file (auto-created)
 ├── .gitignore          # Git ignore rules
-└── README.md           # This file
+└── static/             # Frontend assets
+    ├── index.html      # Homepage
+    ├── create.html     # Vault creation page
+    ├── vault.html      # Vault unlock page
+    └── style.css       # Global stylesheet
 ```
 
----
+## Local Development
 
-## 🌐 Deployment
+### Prerequisites
 
-### Railway (Recommended - Free Tier)
+- Go 1.21 or higher
+- Modern web browser
+
+### Setup
+
+1. Clone or download the repository
+2. Navigate to project directory
+3. Run the application:
 
 ```bash
-# 1. Push to GitHub
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/yourusername/My.Secret.git
-git push -u origin main
-
-# 2. Deploy on Railway
-# - Go to railway.app
-# - Sign in with GitHub
-# - New Project → Deploy from GitHub
-# - Select your repository
-# - Done! Auto-deploys on every push
+go run main.go
 ```
 
-**Free Tier:** $5 credit/month (enough for ~500 hours)
-
-### Other Platforms
-
-**Render.com** (Free with sleep mode)
-```bash
-# Build: go build -o main
-# Start: ./main
-```
-
-**Fly.io** (Best free tier)
-```bash
-fly launch
-fly deploy
-```
-
-**Environment Variables:**
-- `PORT` - Automatically set by hosting platforms
-- No manual configuration needed!
-
----
-
-## 🎯 Use Cases
-
-### Personal
-- 💌 **Anniversary messages** - Create yearly vaults
-- 🎂 **Birthday surprises** - Time-release secrets
-- 💍 **Proposals** - Make it memorable
-- 🎁 **Gift reveals** - Tease before the big day
-
-### Creative
-- 🎮 **Treasure hunts** - Clues in secret vaults
-- 📚 **Story games** - Interactive narratives
-- 🎓 **Education** - Gamified learning challenges
-- 🎭 **Events** - Secret invitations with puzzles
-
-### Professional
-- 🔐 **Secure sharing** - Password-protected messages
-- 🎉 **Team building** - Fun office games
-- 📢 **Announcements** - Build anticipation
-
----
-
-## 🛠️ API Endpoints
-
-### Create Vault
-```http
-POST /api/create
-Content-Type: application/json
-
-{
-  "question1": "What's my nickname?",
-  "answer1": "honey",
-  "question2": "Where did we meet?",
-  "answer2": "paris",
-  "letter": "Dear love, I wanted to tell you..."
-}
-
-Response: 200 OK
-{
-  "vault_id": "abc123xyz...",
-  "vault_url": "https://yoursite.com/v/abc123xyz"
-}
-```
-
-### Get Vault Info
-```http
-GET /api/vault/{vault_id}
-
-Response: 200 OK
-{
-  "vault_id": "abc123xyz",
-  "question1": "What's my nickname?",
-  "question2": "Where did we meet?"
-}
-```
-
-### Check Attempts
-```http
-GET /api/check-attempts?vault_id={id}&name={name}
-
-Response: 200 OK
-{
-  "attempts_used": 2,
-  "attempts_left": 3,
-  "can_try": true
-}
-```
-
-### Unlock Vault
-```http
-POST /api/unlock
-Content-Type: application/json
-
-{
-  "vault_id": "abc123xyz",
-  "name": "John",
-  "answer1": "honey",
-  "answer2": "paris"
-}
-
-Response: 200 OK (Success)
-{
-  "success": true,
-  "letter": "Dear love, I wanted to tell you...",
-  "score": 80
-}
-
-Response: 401 Unauthorized (Wrong Answer)
-{
-  "success": false,
-  "attempts_left": 2,
-  "max_reached": false
-}
-```
-
-### Get Leaderboard
-```http
-GET /api/leaderboard?vault_id={id}
-
-Response: 200 OK
-[
-  {
-    "name": "John",
-    "score": 100,
-    "success": true,
-    "created_at": "2026-02-15T05:00:00Z"
-  },
-  {
-    "name": "Sarah",
-    "score": 0,
-    "success": false,
-    "created_at": "2026-02-15T05:05:00Z"
-  }
-]
-```
-
----
-
-## ⚙️ Configuration
-
-### Change Port (Local)
-```bash
-PORT=8080 go run main.go
-```
-
-### Storage Location
-Data is stored in `data.json` in the project root. To backup:
-```bash
-cp data.json data.backup.json
-```
-
-### Customize Styling
-Edit `static/style.css` to change:
-- Colors (search for hex codes)
-- Fonts (change `font-family` values)
-- Layout (modify padding/margins)
-
----
-
-## 🎨 Design Philosophy
-
-### Aesthetic Principles
-1. **Minimalism** - Clean, uncluttered interface
-2. **Romanticism** - Handwritten fonts, soft colors
-3. **Clarity** - Easy to understand, intuitive flow
-4. **Elegance** - Professional yet warm
-
-### Typography Choices
-- **Libre Baskerville (Italic)** - Logo, handwritten letters
-- **Courier New** - Forms, buttons, UI elements
-- **Uppercase + Letter-spacing** - Headers, labels
+4. Open browser to `http://localhost:3000`
 
-### Color Palette
-- Background: `#f5f0e8` (Warm beige)
-- Cards: `#fefcf7` (Off-white)
-- Text: `#2d2d2d` (Dark charcoal)
-- Accents: `#f5f0e8` (Muted tan)
-- Borders: `#2d2d2d` (2px solid)
+### Configuration
 
----
+The application uses the `PORT` environment variable. If not set, defaults to port 3000.
 
-## 🔒 Security Notes
+## Deployment
 
-### What's Protected
-✅ Answers are case-insensitive and trimmed  
-✅ 5-attempt limit per name prevents brute force  
-✅ Copy-paste disabled on answer fields  
-✅ Each person tracked independently  
+### Railway.app
 
-### What's Not Protected
-❌ No encryption at rest (data.json is plain text)  
-❌ No HTTPS enforcement (use reverse proxy)  
-❌ No rate limiting per IP (only per name)  
-❌ No admin panel (manual data.json edits)  
+1. Push code to GitHub repository
+2. Connect repository to Railway
+3. Railway auto-detects Go application
+4. Application deploys automatically
+5. Access via generated Railway URL
 
-**Recommendation:** This app is designed for fun, romantic messages between trusted people. Don't use it for highly sensitive information.
+### Environment Variables
 
----
+- `PORT`: Server port (automatically set by hosting platform)
 
-## 🐛 Troubleshooting
+## Usage
 
-### "Site can't be reached" on Railway
-- Check Deploy Logs for errors
-- Verify `0.0.0.0` binding in main.go
-- Clear browser DNS cache: `Ctrl+Shift+Delete`
+### Creating a Vault
 
-### "Vault not found" error
-- Ensure `data.json` exists and is readable
-- Check vault ID in URL is correct
-- Restart server: `Ctrl+C` → `go run main.go`
+1. Navigate to the homepage
+2. Click "Create Secret"
+3. Enter two security questions and answers
+4. Write your secret message
+5. Click "Create Secret"
+6. Copy the generated unique URL
+7. Share URL with intended recipient
 
-### Leaderboard shows duplicates
-- This is expected! Shows ALL attempts
-- Frontend filters to best score per person
+### Opening a Vault
 
-### Spinner won't stop (create page)
-- Hard refresh: `Ctrl+Shift+R`
-- Check browser console for errors
-- Verify API endpoint is reachable
+1. Open the shared vault URL
+2. Enter your name
+3. Answer the two security questions
+4. View the secret message upon success
+5. Check the leaderboard to see all attempts
 
----
+### Leaderboard
 
-## 🤝 Contributing
+- Displays all unlock attempts
+- Shows success/failure status
+- Displays scores (100 to 20 points)
+- Accessible before or after attempting unlock
+- Groups by name (shows best attempt per person)
 
-Contributions welcome! Please:
+## Security Features
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
-5. Open a Pull Request
+- Case-insensitive answer matching
+- Answer trimming (removes extra spaces)
+- Five attempts per unique name
+- Failed attempts are logged
+- Copy-paste prevention on answer fields
 
-### Ideas for Contributions
-- [ ] Add timer/expiration for vaults
-- [ ] Email notifications when vault is unlocked
-- [ ] Admin panel for managing vaults
-- [ ] Multiple choice questions option
-- [ ] Image/video attachments in letters
-- [ ] Dark mode support
-- [ ] Multiple language support
-- [ ] Custom themes/colors
+## API Endpoints
 
----
+- `POST /api/create` - Create new vault
+- `GET /api/vault/{id}` - Retrieve vault questions
+- `GET /api/check-attempts` - Check remaining attempts
+- `POST /api/unlock` - Attempt to unlock vault
+- `GET /api/leaderboard` - Retrieve attempt history
+- `GET /health` - Health check endpoint
 
-## 📄 License
+## Design Philosophy
 
-MIT License - feel free to use for personal or commercial projects!
+The application uses a minimalist aesthetic inspired by vintage typography and stationery design:
 
----
+- Serif fonts for romantic elements
+- Monospace fonts for functional elements
+- Black borders and cream backgrounds
+- Clean, uncluttered interface
+- Professional appearance without excessive decoration
 
-## 💖 Acknowledgments
+## Data Persistence
 
-- **Design Inspiration:** [digibouquet](https://digibouquet.vercel.app) by Pauline
-- **Fonts:** Google Fonts (Libre Baskerville)
-- **Hosting:** Railway, Render, Fly.io
-- **Built with:** Go, vanilla JavaScript, pure CSS
+All data is stored in `data.json` in the project root:
 
----
+- Vault information (questions, answers, letters)
+- Attempt history (names, scores, timestamps)
+- Automatic save on each operation
 
-## 📬 Contact & Support
+### Backup
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/My.Secret/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/My.Secret/discussions)
-- **Email:** your.email@example.com
+To backup your data, simply copy the `data.json` file. To restore, replace the file and restart the application.
 
----
+## Browser Support
 
-## 🎉 Made with Love
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Opera (latest)
 
-Created for lovers, dreamers, and everyone who believes in the magic of secret messages.
+## License
 
-**"Made with love for those who understands"**
+This project is provided as-is for personal use.
 
----
+## Contributing
 
-### Quick Links
+This is a personal project. Feel free to fork and modify for your own use.
 
-- [Live Demo](https://mysecret-production.up.railway.app)
-- [Documentation](#-how-it-works)
-- [API Reference](#-api-endpoints)
-- [Deployment Guide](#-deployment)
+## Support
 
----
-
-**Star ⭐ this repo if you like it!**
+For issues or questions, please refer to the deployment platform's documentation or Go language resources.
