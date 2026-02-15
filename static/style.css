@@ -43,17 +43,13 @@ h1, h2, h3 {
     font-weight: 700;
 }
 
-a {
-      color: #2d2d2d;
-      text-decoration: none;
-      border: none;
-    }
-
 .subtitle {
     text-align: center;
     margin-bottom: 40px;
     font-size: 14px;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    color: #666;
 }
 
 .btn {
@@ -128,9 +124,16 @@ textarea:focus {
 textarea {
     min-height: 150px;
     resize: vertical;
-    font-family: 'Libre Baskerville', serif;
+    font-family: 'Courier Prime', 'Courier New', monospace;
     font-size: 16px;
     line-height: 1.8;
+    color: #666;
+}
+
+textarea::placeholder {
+    font-family: 'Courier New', monospace;
+    color: #999;
+    opacity: 0.8;
 }
 
 .help-text {
@@ -163,10 +166,13 @@ textarea {
     padding: 40px;
     margin: 30px 0;
     white-space: pre-wrap;
-    font-family: 'Libre Baskerville', serif;
-    font-size: 18px;
-    line-height: 1.9;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.7;
     background: #fffef9;
+    color: #666;
+    text-align: left;
+    min-height: 200px;
 }
 
 .score-circle {
