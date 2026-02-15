@@ -112,13 +112,6 @@
 
                 document.getElementById('question1Label').textContent = vault.question1;
                 document.getElementById('question2Label').textContent = vault.question2;
-
-                if (!vault.is_locked) {
-                    document.getElementById('nameStep').innerHTML = `
-                        <div class="alert">This secret has already been unlocked!</div>
-                        <button onclick="showLeaderboard()" class="btn" style="width: 100%;">View Leaderboard</button>
-                    `;
-                }
             } catch (error) {
                 showAlert('Failed to load secret', 'error');
             }

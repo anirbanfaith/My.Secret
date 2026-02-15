@@ -20,7 +20,6 @@ type Vault struct {
 	Question2 string    `json:"question2"`
 	Answer2   string    `json:"answer2"`
 	Letter    string    `json:"letter"`
-	IsLocked  bool      `json:"is_locked"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -86,6 +85,12 @@ func main() {
 	http.HandleFunc("/api/unlock", unlockVault)
 	http.HandleFunc("/api/leaderboard", getLeaderboard)
 
+	// Health check for Railway
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
 	// Static files
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -138,7 +143,6 @@ func createVault(w http.ResponseWriter, r *http.Request) {
 		Question2: req.Question2,
 		Answer2:   strings.ToLower(strings.TrimSpace(req.Answer2)),
 		Letter:    req.Letter,
-		IsLocked:  true,
 		CreatedAt: time.Now(),
 	}
 
@@ -180,7 +184,6 @@ func getVault(w http.ResponseWriter, r *http.Request) {
 		"vault_id":  vault.ID,
 		"question1": vault.Question1,
 		"question2": vault.Question2,
-		"is_locked": vault.IsLocked,
 	})
 }
 
@@ -235,7 +238,7 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Count failed attempts
+	// Count failed attempts for this name
 	attemptCount := 0
 	for _, a := range attempts {
 		if a.Name == req.Name && !a.Success {
@@ -269,8 +272,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 
 		storage.mu.Lock()
 		storage.Attempts[req.VaultID] = append(storage.Attempts[req.VaultID], attempt)
-		vault.IsLocked = false
-		storage.Vaults[req.VaultID] = vault
 		storage.mu.Unlock()
 
 		saveStorage()
