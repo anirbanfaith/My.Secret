@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+// --- Types ---
+
 type Vault struct {
 	ID        string    `json:"id"`
 	Question1 string    `json:"question1"`
@@ -36,12 +38,16 @@ type Storage struct {
 	mu       sync.RWMutex
 }
 
+// --- Global State ---
+
 var storage = &Storage{
 	Vaults:   make(map[string]Vault),
 	Attempts: make(map[string][]Attempt),
 }
 
 const storageFile = "data.json"
+
+// --- Storage Logic ---
 
 func loadStorage() {
 	data, err := os.ReadFile(storageFile)
@@ -53,7 +59,10 @@ func loadStorage() {
 	storage.mu.Lock()
 	defer storage.mu.Unlock()
 
-	json.Unmarshal(data, storage)
+	if err := json.Unmarshal(data, storage); err != nil {
+		log.Printf("Error parsing storage: %v", err)
+		return
+	}
 	log.Printf("✅ Loaded %d vaults from storage\n", len(storage.Vaults))
 }
 
@@ -75,32 +84,35 @@ func generateID() string {
 	return hex.EncodeToString(bytes)
 }
 
+// --- Main Server ---
+
 func main() {
 	loadStorage()
 
-	// API endpoints
+	// 1. API Endpoints
 	http.HandleFunc("/api/create", createVault)
 	http.HandleFunc("/api/vault/", getVault)
 	http.HandleFunc("/api/check-attempts", checkAttempts)
 	http.HandleFunc("/api/unlock", unlockVault)
 	http.HandleFunc("/api/leaderboard", getLeaderboard)
 
-	// Health check for Railway
+	// 2. Critical SEO & Browser Files (Updated Paths)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-
-	// Robots.txt for SEO and bot protection
 	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/robots.txt")
 	})
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/favicon.ico")
+	})
 
-	// Static files
+	// 3. Static Assets (CSS/JS)
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// Pages
+	// 4. Page Routing
 	http.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/create.html")
 	})
@@ -110,22 +122,25 @@ func main() {
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			http.ServeFile(w, r, "./static/index.html")
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
 			return
 		}
-		http.NotFound(w, r)
+		http.ServeFile(w, r, "./static/index.html")
 	})
 
+	// 5. Port & Listen
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
 
 	log.Printf("✨ My Secret starting on port %s\n", port)
-	log.Printf("🌐 Open http://localhost:%s\n", port)
+	// Bind to 0.0.0.0 for Railway/Cloud connectivity
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }
+
+// --- Handlers ---
 
 func createVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -134,7 +149,10 @@ func createVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req Vault
-	json.NewDecoder(r.Body).Decode(&req)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
 
 	if req.Question1 == "" || req.Answer1 == "" || req.Question2 == "" || req.Answer2 == "" || req.Letter == "" {
 		http.Error(w, "All fields required", http.StatusBadRequest)
@@ -162,8 +180,6 @@ func createVault(w http.ResponseWriter, r *http.Request) {
 		scheme = "https"
 	}
 	vaultURL := fmt.Sprintf("%s://%s/v/%s", scheme, r.Host, vault.ID)
-
-	log.Printf("✅ Vault created: %s\n", vault.ID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -228,7 +244,11 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		Answer2 string `json:"answer2"`
 	}
 
-	json.NewDecoder(r.Body).Decode(&req)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	req.Name = strings.TrimSpace(req.Name)
 	req.Answer1 = strings.ToLower(strings.TrimSpace(req.Answer1))
 	req.Answer2 = strings.ToLower(strings.TrimSpace(req.Answer2))
@@ -243,7 +263,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Count failed attempts for this name
 	attemptCount := 0
 	for _, a := range attempts {
 		if a.Name == req.Name && !a.Success {
@@ -261,7 +280,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check answers
 	if req.Answer1 == vault.Answer1 && req.Answer2 == vault.Answer2 {
 		score := 100 - (attemptCount * 20)
 		if score < 20 {
@@ -278,7 +296,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		storage.mu.Lock()
 		storage.Attempts[req.VaultID] = append(storage.Attempts[req.VaultID], attempt)
 		storage.mu.Unlock()
-
 		saveStorage()
 
 		w.Header().Set("Content-Type", "application/json")
@@ -290,7 +307,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Wrong answer
 	attempt := Attempt{
 		Name:      req.Name,
 		Score:     0,
@@ -301,7 +317,6 @@ func unlockVault(w http.ResponseWriter, r *http.Request) {
 	storage.mu.Lock()
 	storage.Attempts[req.VaultID] = append(storage.Attempts[req.VaultID], attempt)
 	storage.mu.Unlock()
-
 	saveStorage()
 
 	attemptCount++
