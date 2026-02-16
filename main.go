@@ -45,7 +45,17 @@ var storage = &Storage{
 	Attempts: make(map[string][]Attempt),
 }
 
-const storageFile = "data.json"
+func getStoragePath() string {
+	// Check if Railway volume exists
+	if _, err := os.Stat("/data"); err == nil {
+		// On Railway with volume
+		return "/data/data.json"
+	}
+	// Local development
+	return "data.json"
+}
+
+var storageFile = getStoragePath()
 
 // --- Storage Logic ---
 
