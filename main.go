@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-// --- Types ---
-
 type Vault struct {
 	ID        string    `json:"id"`
 	Question1 string    `json:"question1"`
@@ -38,26 +36,19 @@ type Storage struct {
 	mu       sync.RWMutex
 }
 
-// --- Global State ---
-
 var storage = &Storage{
 	Vaults:   make(map[string]Vault),
 	Attempts: make(map[string][]Attempt),
 }
 
 func getStoragePath() string {
-	// Check if Railway volume exists
 	if _, err := os.Stat("/data"); err == nil {
-		// On Railway with volume
 		return "/data/data.json"
 	}
-	// Local development
 	return "data.json"
 }
 
 var storageFile = getStoragePath()
-
-// --- Storage Logic ---
 
 func loadStorage() {
 	data, err := os.ReadFile(storageFile)
@@ -94,12 +85,9 @@ func generateID() string {
 	return hex.EncodeToString(bytes)
 }
 
-// --- Main Server ---
-
 func main() {
 	loadStorage()
 
-	// 1. API Endpoints
 	http.HandleFunc("/api/create", createVault)
 	http.HandleFunc("/api/vault/", getVault)
 	http.HandleFunc("/api/check-attempts", checkAttempts)
@@ -130,42 +118,22 @@ func main() {
 		w.Write(data)
 	})
 
-	// Backup endpoint (protected with secret key)
-	http.HandleFunc("/api/backup", func(w http.ResponseWriter, r *http.Request) {
-		// Change "your-secret-key-here" to something only you know
-		if r.URL.Query().Get("key") != "your-secret-key-here" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		data, err := os.ReadFile(storageFile)
-		if err != nil {
-			http.Error(w, "Failed to read data", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Content-Disposition", "attachment; filename=backup.json")
-		w.Write(data)
-	})
-
-	// 2. Critical SEO & Browser Files (Updated Paths)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
+
 	http.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/robots.txt")
 	})
+
 	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/favicon.ico")
 	})
 
-	// 3. Static Assets (CSS/JS)
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// 4. Page Routing
 	http.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/create.html")
 	})
@@ -182,18 +150,14 @@ func main() {
 		http.ServeFile(w, r, "./static/index.html")
 	})
 
-	// 5. Port & Listen
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
 
 	log.Printf("✨ My Secret starting on port %s\n", port)
-	// Bind to 0.0.0.0 for Railway/Cloud connectivity
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
 }
-
-// --- Handlers ---
 
 func createVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
