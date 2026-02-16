@@ -130,30 +130,6 @@ func main() {
 		w.Write(data)
 	})
 
-	// Backup endpoint - download all data
-	http.HandleFunc("/api/backup", func(w http.ResponseWriter, r *http.Request) {
-		// Simple authentication - change this secret key!
-		secretKey := os.Getenv("BACKUP_KEY")
-		if secretKey == "" {
-			secretKey = "change-this-secret-key-123" // Default key
-		}
-
-		if r.URL.Query().Get("key") != secretKey {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		data, err := os.ReadFile(storageFile)
-		if err != nil {
-			http.Error(w, "Failed to read data", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Content-Disposition", "attachment; filename=mysecret-backup.json")
-		w.Write(data)
-	})
-
 	// Backup endpoint (protected with secret key)
 	http.HandleFunc("/api/backup", func(w http.ResponseWriter, r *http.Request) {
 		// Change "your-secret-key-here" to something only you know
